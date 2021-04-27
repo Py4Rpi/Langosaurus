@@ -329,15 +329,15 @@ def insert_user_progress_into_db(usr_id, wrd_id, itrvl, msg_date):
     return
 
 
-async def sched_msg(user_id):
-    db = sqlite3.connect("superlangbot.sqlite")
-    cursor = db.cursor()
-    cursor.execute('SELECT repeat_date, intervals FROM progress WHERE (user_id=?)', (user_id,))
-    entry = cursor.fetchall()
-    db.close()
-    if datetime.now() == datetime.now():
-        superlangbot.schedule_msg(user_id)
-    # for row in entry:
-    #     if datetime.now() >= row[0] + timedelta(days=row[1]):
-    #         superlangbot.schedule_msg(user_id)
-    await asyncio.sleep(1)
+#async def sched_msg(user_id):
+#    db = sqlite3.connect("superlangbot.sqlite")
+#    cursor = db.cursor()
+#    cursor.execute('SELECT repeat_date, intervals FROM progress WHERE (user_id=?)', (user_id,))
+#    entry = cursor.fetchall()
+#    db.close()
+#    if datetime.now() == datetime.now():
+#        superlangbot.schedule_msg(user_id)
+#    # for row in entry:
+#    #     if datetime.now() >= row[0] + timedelta(days=row[1]):
+#    #         superlangbot.schedule_msg(user_id)
+#    await asyncio.sleep(1)
