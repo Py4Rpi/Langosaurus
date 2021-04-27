@@ -1,1 +1,1 @@
-worker: python superlangbot.py
+web: python superlangbot.py
