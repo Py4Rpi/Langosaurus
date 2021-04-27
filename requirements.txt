@@ -1,13 +1,6 @@
 APScheduler==3.7.0
 async-timeout==3.0.1
-decorator==4.4.2
-distlib==0.3.1
-Django==3.1.4
-Flask==1.0.1
-Jinja2==2.11.2
 pyTelegramBotAPI==3.7.5
-pytest==6.1.1
 schedule==1.0.0
 sqlparse==0.4.1
-subprocess.run==0.0.8
 virtualenv==20.0.31
