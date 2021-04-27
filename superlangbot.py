@@ -83,8 +83,8 @@ def reboot(message):
     dbworker.set_reboot_state(config.States.S_REBOOT.value)
 
 
-def schedule_msg(user_id):
-    bot.send_message(user_id, 'Появились слова для повторения. Рекомендуется пройти тест. /TEST', disable_notification=False)
+# def schedule_msg(user_id):
+#     bot.send_message(user_id, 'Появились слова для повторения. Рекомендуется пройти тест. /TEST', disable_notification=False)
 
 
 # def schedule_msg():
@@ -109,7 +109,7 @@ def start(message):
           datetime.utcfromtimestamp(message.date).strftime('%Y-%m-%d %H:%M:%S'))
     dbworker.insert_new_user_into_db(message.chat.id, message.from_user.first_name,
                                      datetime.utcfromtimestamp(message.date).strftime('%Y-%m-%d %H:%M:%S'))
-    asyncio.run(dbworker.sched_msg(message.from_user.id))
+    # asyncio.run(dbworker.sched_msg(message.from_user.id))
     return
 
 
