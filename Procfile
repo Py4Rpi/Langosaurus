@@ -1,1 +1,1 @@
-bot: python superlangbot.py
+web: python superlangbot.py --port $PORT --host 0.0.0.0 
