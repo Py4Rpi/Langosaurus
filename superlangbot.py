@@ -10,10 +10,12 @@ from telebot import types
 from datetime import datetime, timedelta
 from copy import deepcopy
 import re
-import asyncio
+# import asyncio
 import dbworker
 from telebot import apihelper
 from datetime import datetime
+import schedule
+from threading import Thread
 
 # import exam_sched
 
@@ -73,26 +75,23 @@ db.close()
                      func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_REBOOT.value)
 def reboot_msg(message):
     bot.send_message(message.from_user.id,
-                     '🛠️ Проводились технические работы. Приносим извинения за предоставленные неудобства. 😉 ⚙', disable_notification=True)
+                     '🛠️ Проводились технические работы. Приносим извинения за предоставленные неудобства. 😉 ⚙',
+                     disable_notification=True)
     time.sleep(2)
     return start(message)
 
 
 @bot.message_handler(commands=['sudo_reboot'])
 def reboot(message):
+    print('reboot command.')
     dbworker.set_reboot_state(config.States.S_REBOOT.value)
 
 
-# def schedule_msg(user_id):
-#     bot.send_message(user_id, 'Появились слова для повторения. Рекомендуется пройти тест. /TEST', disable_notification=False)
-
-
-# def schedule_msg():
-#     time.sleep(1)
-#     bot.send_message(737422517, 'Рекомендуется пройти тест! /TEST')
-#
-#
-# schedule_msg()
+@bot.message_handler(commands=['sudo_get_users'])
+def reboot(message):
+    print('get users command.')
+    bot.send_message(message.chat.id, f'All users info:\n {dbworker.get_all_users_info__admin()}\n',
+                     parse_mode="Markdown")
 
 
 @bot.message_handler(commands=['START', 'start'])
@@ -109,21 +108,23 @@ def start(message):
           datetime.utcfromtimestamp(message.date).strftime('%Y-%m-%d %H:%M:%S'))
     dbworker.insert_new_user_into_db(message.chat.id, message.from_user.first_name,
                                      datetime.utcfromtimestamp(message.date).strftime('%Y-%m-%d %H:%M:%S'))
-    # asyncio.run(dbworker.sched_msg(message.from_user.id))
+
+    dbworker.test_reminder_msg(message.from_user.id)
     return
 
 
 @bot.message_handler(commands=['progress'])
 def show_progress_command(message):
     bot.send_message(message.chat.id, str(dbworker.progress_check(message.chat.id)[1]) + ' - слов выучено\n ' +
-                     '[█▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒]' + str(
-        int((dbworker.progress_check(message.chat.id)[1]) / 42.45)) + '%\n' +
+                     str(int((dbworker.progress_check(message.chat.id)[1]) / 42.45)) + '%  ' +
+                     str(' ⭐️' * (int(int((int(dbworker.progress_check(message.chat.id)[1])) / 42.45) / 10))) + '\n' +
                      str(dbworker.progress_check(message.chat.id)[0]) + ' - слов в процессе изучения\n' +
-                     '[█▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒]' + str(
-        int((dbworker.progress_check(message.chat.id)[0]) / 42.45)) + '%\n' +
+                     str(int((dbworker.progress_check(message.chat.id)[0]) / 42.45)) + '%  ' +
+                     str(' 🔎️' * (int(int((int(dbworker.progress_check(message.chat.id)[0])) / 42.45) / 10))) + '\n' +
                      str(4245 - int(dbworker.progress_check(message.chat.id)[2])) + ' - слов осталость в базе\n' +
-                     '[████████████████████]' + str(
-        int((4245 - int(dbworker.progress_check(message.chat.id)[2])) / 42.45)) + '%')
+                     str(int((4245 - int(dbworker.progress_check(message.chat.id)[2])) / 42.45)) + '%  ' +
+                     str(' 📚' * (int(int((4245 - int(dbworker.progress_check(message.chat.id)[2])) / 42.45) / 10))))
+
     return
 
 
@@ -152,65 +153,66 @@ def test_mode(message):
             return
 
         elif message.text.lower() == dbworker.user_current_data_from_db(message.from_user.id)[1]:
-            print('TEST: correct answer')
+            # print('TEST: correct answer')
 
             # dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
             #                                    dbworker.user_current_data_from_db(message.from_user.id)[3])
             if dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
                                                   dbworker.user_current_data_from_db(message.from_user.id)[3]) == False:
-                print('TEST: false  returned to test mode. set interval - 2')
+                # print('TEST: false  returned to test mode. set interval - 2')
                 dbworker.insert_user_progress_into_db(message.chat.id,
                                                       dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      2,
+                                                      172800,
                                                       int(time.time()))
                 bot.send_message(message.chat.id, random.choice(emoji_gut) + ' ' + random.choice(words_gut))
 
             elif dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                    dbworker.user_current_data_from_db(message.from_user.id)[3]) == 1:
-                print('TEST: 1 returned to test mode. set interval - 2')
+                                                    dbworker.user_current_data_from_db(message.from_user.id)[
+                                                        3]) == 86400:
+                # print('TEST: 1 returned to test mode. set interval - 2')
                 dbworker.insert_user_progress_into_db(message.chat.id,
                                                       dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      2,
+                                                      172800,
                                                       int(time.time()))
                 bot.send_message(message.chat.id, random.choice(emoji_gut) + ' ' + random.choice(words_gut))
 
             elif dbworker.check_word_id_in_progress(
                     dbworker.user_current_data_from_db(message.from_user.id)[2],
-                    dbworker.user_current_data_from_db(message.from_user.id)[3]) == 2:
-                print('TEST: 2 returned to test mode. set interval - 4')
+                    dbworker.user_current_data_from_db(message.from_user.id)[3]) == 172800:
+                # print('TEST: 2 returned to test mode. set interval - 4')
                 dbworker.insert_user_progress_into_db(message.chat.id,
                                                       dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      4,
+                                                      345600,
                                                       int(time.time()))
                 bot.send_message(message.chat.id, random.choice(emoji_gut) + ' ' + random.choice(words_gut))
 
             elif dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
                                                     dbworker.user_current_data_from_db(message.from_user.id)[
-                                                        3]) == 4:
-                print('TEST: 4 returned to test mode. set interval - 8')
+                                                        3]) == 345600:
+                # print('TEST: 4 returned to test mode. set interval - 8')
                 dbworker.insert_user_progress_into_db(message.chat.id,
                                                       dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      8,
+                                                      691200,
                                                       int(time.time()))
                 bot.send_message(message.chat.id, random.choice(emoji_gut) + ' ' + random.choice(words_gut))
 
             elif dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
                                                     dbworker.user_current_data_from_db(message.from_user.id)[
-                                                        3]) == 8:
-                print('TEST: 8 returned to test mode. set interval - 9')
+                                                        3]) == 691200:
+                # print('TEST: 8 returned to test mode. set interval - 9')
                 dbworker.insert_user_progress_into_db(message.chat.id,
                                                       dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      9,
+                                                      777600,
                                                       int(time.time()))
                 bot.send_message(message.chat.id, '🎈🎉🎊🎉  Поздравляю! Слово выучено! 😃  🎉🎊🎉🎈')
 
             elif dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
                                                     dbworker.user_current_data_from_db(message.from_user.id)[
-                                                        3]) == 9:
-                print('9 returned to test mode. set interval - 9')
+                                                        3]) == 777600:
+                # print('9 returned to test mode. set interval - 9')
                 dbworker.insert_user_progress_into_db(message.chat.id,
                                                       dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      9,
+                                                      777600,
                                                       int(time.time()))
                 bot.send_message(message.chat.id, 'Слово уже выучено...')
 
@@ -235,7 +237,7 @@ def test_mode(message):
             return
 
         elif message.text.lower() != dbworker.user_current_data_from_db(message.from_user.id)[1]:
-            print('incorrect')
+            # print('incorrect')
 
             # dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
             #                                    dbworker.user_current_data_from_db(message.from_user.id)[3])
@@ -243,7 +245,7 @@ def test_mode(message):
             #                                       dbworker.user_current_data_from_db(message.from_user.id)[3]) is True:
             dbworker.insert_user_progress_into_db(message.chat.id,
                                                   dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                  1,
+                                                  86400,
                                                   int(time.time()))
 
             # elif dbworker.check_word_id_in_progress(
@@ -350,7 +352,7 @@ def carding(message):
                                                   dbworker.user_current_data_from_db(message.from_user.id)[3]) is True:
                 dbworker.insert_user_progress_into_db(message.chat.id,
                                                       dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      4,
+                                                      345600,
                                                       int(time.time()))
 
             elif dbworker.check_word_id_in_progress(
@@ -358,7 +360,7 @@ def carding(message):
                     dbworker.user_current_data_from_db(message.from_user.id)[3]) is False:
                 dbworker.insert_user_progress_into_db(message.chat.id,
                                                       dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      2,
+                                                      172800,
                                                       int(time.time()))
 
             bot.send_message(message.chat.id, random.choice(emoji_gut) + ' ' + random.choice(words_gut))
@@ -385,7 +387,7 @@ def carding(message):
                                                   dbworker.user_current_data_from_db(message.from_user.id)[3]) is True:
                 dbworker.insert_user_progress_into_db(message.chat.id,
                                                       dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      1,
+                                                      86400,
                                                       int(time.time()))
 
             elif dbworker.check_word_id_in_progress(
@@ -393,7 +395,7 @@ def carding(message):
                     dbworker.user_current_data_from_db(message.from_user.id)[3]) is False:
                 dbworker.insert_user_progress_into_db(message.chat.id,
                                                       dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      1,
+                                                      86400,
                                                       int(time.time()))
 
             bot.send_message(message.chat.id,
@@ -418,18 +420,42 @@ def carding(message):
 
 
 """How can I handle reocurring ConnectionResetErrors?
-
 Bot instances that were idle for a long time might be rejected by the server when sending a message due to a timeout 
 of the last used session. Add apihelper.SESSION_TIME_TO_LIVE = 5 * 60 to your initialisation to force recreation 
 after 5 minutes without any activity. """
 
+
+def schedule_checker():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
+def msg_itself(user_id):
+    db = sqlite3.connect("superlangbot.sqlite")
+    cursor = db.cursor()
+    cursor.execute('SELECT intervals, repeat_date FROM progress WHERE (user_id=?)', (user_id,))
+    entry = cursor.fetchall()
+    db.close()
+
+    def loop():
+        for row in entry:
+            if row[0] + row[1] <= int(time.time()):
+                return True
+
+    if loop() is True:
+        return bot.send_message(user_id, 'Появились слова для повторения. Рекомендуется пройти тест. /TEST')
+    else:
+        pass
+
+
 apihelper.SESSION_TIME_TO_LIVE = 5 * 60
+
 if __name__ == '__main__':
     print("bot running...")
+    Thread(target=schedule_checker).start()
     while True:
         try:
             bot.polling()
-
-
         except:
             time.sleep(2)

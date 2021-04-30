@@ -7,6 +7,8 @@ import random
 import telebot
 import superlangbot
 from datetime import datetime, timedelta
+import schedule
+from threading import Thread
 
 
 # from apscheduler.events import EVENT_JOB_EXECUTED
@@ -108,69 +110,69 @@ def select_and_update_user_current_word(user_id):
         'FROM progress, users WHERE progress.user_id = ? ORDER BY random()',
         (user_id,))
     progress_data = cursor.fetchall()
-    print('SELECT: selected data from progress table')
-    print(progress_data)
+    print(str(user_id) + ' SELECT: selected data from progress table')
+    # print(progress_data)
     if progress_data:
 
         for row in progress_data:
-            print('SELECT: check for interval words in progress data')
-            if row[2] == 1 and row[3] + 86400 <= time.time() and row[4] == 1:
-                print('SELECT: found interval 1')
+            print(str(user_id) + ' SELECT: check for interval words in progress data')
+            if row[2] == 86400 and row[3] + 86400 <= time.time() and row[4] == 1:
+                # print('SELECT: found interval 1')
                 cursor.execute("UPDATE users SET current_word_id = ?, random_or_repeat = ? WHERE user_id = ?",
                                (row[1], 0, user_id))
-                print('SELECT: switch set to random - 0')
+                # print('SELECT: switch set to random - 0')
                 database.commit()
                 database.close()
                 return
 
-            elif row[2] == 2 and row[3] + 172800 <= time.time() and row[4] == 1:
-                print('SELECT: found interval 2')
+            elif row[2] == 172800 and row[3] + 172800 <= time.time() and row[4] == 1:
+                # print('SELECT: found interval 2')
                 cursor.execute("UPDATE users SET current_word_id = ?, random_or_repeat = ? WHERE user_id = ?",
                                (row[1], 0, user_id))
-                print('SELECT: switch set to random - 0')
+                # print('SELECT: switch set to random - 0')
                 database.commit()
                 database.close()
                 return
 
-            elif row[2] == 4 and row[3] + 345600 <= time.time() and row[4] == 1:
-                print('SELECT: found interval 4')
+            elif row[2] == 345600 and row[3] + 345600 <= time.time() and row[4] == 1:
+                # print('SELECT: found interval 4')
                 cursor.execute("UPDATE users SET current_word_id = ?, random_or_repeat = ? WHERE user_id = ?",
                                (row[1], 0, user_id))
-                print('SELECT: switch set to random - 0')
+                # print('SELECT: switch set to random - 0')
                 database.commit()
                 database.close()
                 return
 
-            elif row[2] == 8 and row[3] + 691200 <= time.time() and row[4] == 1:
-                print('SELECT: found interval 8')
+            elif row[2] == 691200 and row[3] + 691200 <= time.time() and row[4] == 1:
+                # print('SELECT: found interval 8')
                 cursor.execute("UPDATE users SET current_word_id = ?, random_or_repeat = ? WHERE user_id = ?",
                                (row[1], 0, user_id))
-                print('SELECT: switch set to random - 0')
+                # print('SELECT: switch set to random - 0')
                 database.commit()
                 database.close()
                 return
 
 
             else:
-                print('SELECT: select random word in cycle and update current word id')
+                print(str(user_id) + ' SELECT: select random word in cycle and update current word id')
                 cursor.execute(
                     "SELECT words.id, words.rate, words.eng, words.rus FROM words, progress WHERE words.id != progress.word_id ORDER BY random()")
                 random_word_from_database = cursor.fetchone()
                 cursor.execute("UPDATE users SET current_word_id = ?, random_or_repeat = ? WHERE user_id = ?",
                                (random_word_from_database[0], 1, user_id))
-                print('SELECT: switch set to intervals - 1')
+                # print('SELECT: switch set to intervals - 1')
                 database.commit()
                 database.close()
                 return
 
     else:
-        print('SELECT: select random word outside cycle and update current word id')
+        print(str(user_id) + ' SELECT: select random word outside cycle and update current word id')
         cursor.execute(
             "SELECT words.id, words.rate, words.eng, words.rus FROM words, progress WHERE words.id != progress.word_id ORDER BY random()")
         random_word_from_database = cursor.fetchone()
         cursor.execute("UPDATE users SET current_word_id = ?, random_or_repeat = ? WHERE user_id = ?",
-                       (random_word_from_database[0], 1, user_id))
-        print('SELECT: switch set to intervals - 1')
+                       (55, 1, user_id))
+        # print('SELECT: switch set to intervals - 1')
         database.commit()
         database.close()
         return
@@ -268,29 +270,29 @@ def check_word_id_in_progress(word_id, user_id):
     entry = cursor.fetchone()
     db.close()
 
-    print('CHECK WORD: checking if word already in progress table or not')
-    print(entry)
+    # print('CHECK WORD: checking if word already in progress table or not')
+    # print(entry)
     if entry:
         if entry[0] == word_id:
-            print('CHECK WORD: word id found in progress table')
-            if entry[1] == 1:
-                print('CHECK WORD: word already  exists in progress table with intreval 1')
-                return 1
-            elif entry[1] == 2:
-                print('CHECK WORD: word already  exists in progress table with intreval  2')
-                return 2
-            elif entry[1] == 4:
-                print('CHECK WORD: word already  exists in progress table with intreval  4')
-                return 4
-            elif entry[1] == 8:
-                print('CHECK WORD: word already  exists in progress table with intreval  8')
-                return 8
-            elif entry[1] == 9:
-                print('CHECK WORD: word already  exists in progress table with intreval  9')
-                return 9
+            # print('CHECK WORD: word id found in progress table')
+            if entry[1] == 86400:
+                # print('CHECK WORD: word already  exists in progress table with intreval 1')
+                return 86400
+            elif entry[1] == 172800:
+                # print('CHECK WORD: word already  exists in progress table with intreval  2')
+                return 172800
+            elif entry[1] == 345600:
+                # print('CHECK WORD: word already  exists in progress table with intreval  4')
+                return 345600
+            elif entry[1] == 691200:
+                # print('CHECK WORD: word already  exists in progress table with intreval  8')
+                return 691200
+            elif entry[1] == 777600:
+                # print('CHECK WORD: word already  exists in progress table with intreval  9')
+                return 777600
     else:
 
-        print('CHECK WORD: word id not found in progress table ')
+        # print('CHECK WORD: word id not found in progress table ')
         return False
 
 
@@ -300,10 +302,10 @@ def progress_check(user_id):
     cursor.execute('SELECT intervals FROM progress WHERE (user_id=?)', (user_id,))
     entry = cursor.fetchall()
     db.close()
-    in_progress = entry.count((1,)) + entry.count((2,)) + entry.count((4,)) + entry.count((8,))
-    completed = entry.count((9,))
+    in_progress = entry.count((86400,)) + entry.count((172800,)) + entry.count((345600,)) + entry.count((691200,))
+    completed = entry.count((777600,))
     all = in_progress + completed
-    print(all)
+    # print(all)
 
     return in_progress, completed, all
 
@@ -329,15 +331,15 @@ def insert_user_progress_into_db(usr_id, wrd_id, itrvl, msg_date):
     return
 
 
-#async def sched_msg(user_id):
-#    db = sqlite3.connect("superlangbot.sqlite")
-#    cursor = db.cursor()
-#    cursor.execute('SELECT repeat_date, intervals FROM progress WHERE (user_id=?)', (user_id,))
-#    entry = cursor.fetchall()
-#    db.close()
-#    if datetime.now() == datetime.now():
-#        superlangbot.schedule_msg(user_id)
-#    # for row in entry:
-#    #     if datetime.now() >= row[0] + timedelta(days=row[1]):
-#    #         superlangbot.schedule_msg(user_id)
-#    await asyncio.sleep(1)
+def get_all_users_info__admin():
+    database = sqlite3.connect("superlangbot.sqlite")
+    cursor = database.cursor()
+    cursor.execute('SELECT * FROM users ')
+    all_users_data = cursor.fetchall()
+    print('SERVICE INFO: all_users_data \n')
+    print(*all_users_data, sep='\n')
+    return all_users_data
+
+
+def test_reminder_msg(user_id):
+    schedule.every().day.at("12:00").do(superlangbot.msg_itself, user_id=user_id)
