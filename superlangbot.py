@@ -71,16 +71,6 @@ motivation = cursor.fetchall()
 db.close()
 
 
-@bot.message_handler(content_types=['text'],
-                     func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_REBOOT.value)
-def reboot_msg(message):
-    bot.send_message(message.from_user.id,
-                     '🛠️ Проводились технические работы. Приносим извинения за предоставленные неудобства. 😉 ⚙',
-                     disable_notification=True)
-    time.sleep(2)
-    return start(message)
-
-
 @bot.message_handler(commands=['sudo_reboot'])
 def reboot(message):
     print('reboot command.')
@@ -96,7 +86,9 @@ def reboot(message):
 
 @bot.message_handler(commands=['START', 'start'])
 def start(message):
+    print('st')
     dbworker.set_current_state(message.chat.id, config.States.S_START.value)
+    print('set')
     bot.send_message(message.chat.id, f'<b>Привет  </b> {message.from_user.first_name}\n\n'
                                       f'Для просмотра отчета о процессе обучения введи - /progress\n\n'
                                       f'Для возврата в меню из любого режима введи - /start\n\n\n'
@@ -417,6 +409,16 @@ def carding(message):
                 bot.send_message(message.chat.id, links[random.randint(0, 2)])
                 bot.send_message(message.chat.id, 'Вернуться в меню /start')
                 dbworker.set_current_state(message.chat.id, config.States.S_START.value)
+
+
+@bot.message_handler(content_types=['text'],
+                     func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_REBOOT.value)
+def reboot_msg(message):
+    bot.send_message(message.from_user.id,
+                     '🛠️ Проводились технические работы. Приносим извинения за предоставленные неудобства. 😉 ⚙',
+                     disable_notification=True)
+    time.sleep(2)
+    return start(message)
 
 
 """How can I handle reocurring ConnectionResetErrors?
