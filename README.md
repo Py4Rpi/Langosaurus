@@ -53,14 +53,3 @@ There are two modes so far:
 Keep in mind that it is just a simple pet project and there are no any warranty that it will work on your setup.
 
 If any troubles you can use Issue Tracker to notify me.
-
-Have a nice coding :)
-
-## Version History
-
-* 0.1
-    * Initial Release
-
-## License
-
-There is no any licence, do whatever you want :)
