@@ -1,59 +1,25 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
-import telebot
-import time
-import config
-import sqlite3
-import random
-from telebot import types
-from datetime import datetime, timedelta
-from copy import deepcopy
-import re
-# import asyncio
 import dbworker
-from telebot import apihelper
+import config
+import time
 from datetime import datetime
+import random
+import sqlite3
+import telebot
+from telebot import types
+from telebot import apihelper
 import schedule
 from threading import Thread
 
-# import exam_sched
+'''
+FUTURE AUDIO FILE FEATURE
 
-# from apscheduler.schedulers.blocking import BlockingScheduler
-
+bot.send_voice(737422517, open('abandon.ogg', 'rb'), '*abandon*:   _покидать_\n\nəˈbandən', parse_mode='Markdown')
+bot.send_photo(737422517, open('abandon.jpg', 'rb'))
+'''
 
 bot = telebot.TeleBot(config.token)
-
-links = ['https://www.patreon.com/langosaurus',
-         'https://ad.admitad.com/g/0abba212ffaf2e72e1f61ac5a4392d',
-         'https://ad.admitad.com/g/roblgzy8c5af2e72e1f6e1b1bba22e']
-# bot.send_voice(737422517, open('abandon.ogg', 'rb'), '*abandon*:   _покидать_\n\nəˈbandən', parse_mode='Markdown')
-# bot.send_photo(737422517, open('abandon.jpg', 'rb'))
-
-words_gut = ['Согласен!', 'В лучшем виде!', 'Идеально!', 'Образцово!', 'Недурно!', 'Здорово!', 'На пять баллов!',
-             'Грех жаловаться!', 'Шикарно!', 'Чудесно!', 'Колоссально!', 'Подходяще!', 'Круто!', 'Да будет так!',
-             'Первоклассно!', 'Чудно!', 'На уровне!', 'Изумительно!', 'Блестяще!', 'Точно!', 'Как следует!', 'Красота!',
-             'Шик-блеск!', 'Балдеж!', 'Чётко!', 'Нормалёк!', 'Замечательно!', 'Пять с плюсом!', 'Все хоккей!',
-             'Великолепно!', 'Ладушки!', 'Хорошо!', 'Ништяк!', 'Нормально!', 'Восхитительно!', 'Вправду!',
-             'Высшая отметка!', 'Окей!', 'Всё окей!', 'На зависть!', 'Класс!', 'Безошибочно!', 'Действительно!',
-             'Высший класс!', 'Пять баллов!', 'Очень хорошо!', 'Совершенно верно!', 'Клево!', 'Виртуозно!',
-             'Высшая оценка!', 'Блеск!', 'Прекрасно!', 'Мастерски!', 'Тип-топ!', 'Пятёрочка!', 'Превосходно!',
-             'Это пять!', 'Неплохо!', 'Порядок!', 'Верно!', 'Так тому и быть!', 'Как нельзя лучше!', 'Обалденно!',
-             'Славно!', 'Чудненько!', 'На должном уровне!', 'Классно!', 'Вау класс!', 'Отменно!']
-
-words_bad = []
-
-emoji_gut = ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😋',
-             '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '😏', '🤠', '🥳', '😎', '🤓', '🧐', '💯', '🖐', '🖖', '👌', '✌',
-             '🤟', '🤘', '🤙', '👍', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '💪', '🧠', '👨‍🎓', '👩‍🎓', '👨‍🚀', '👩‍🚀',
-             '💂', '💂‍♂️', '💂‍♀️', '🤴', '🦸', '🦸‍♂️', '🦸‍♀️', '👯', '👯‍♂️', '👯‍♀️', '🌼', '🌱', '🌴', '🍀', '🍒',
-             '🍄', '🍻', '🥂', '🗽', '🚀', '🌞', '⭐', '🌈', '⚡', '🔥', '✨', '🎈', '🎉', '🎀', '🎁', '🏆', '🥇', '🎯',
-             '💎', '📈', '✅', '🆒', '🆗']
-
-emoji_bad = ['🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😒', '🙄', '😬', '🤥', '😔', '😪', '😴', '😷', '🤒', '🤕', '🤢',
-             '🥴', '😵', '🤯', '😕', '😟', '🙁', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭',
-             '😱', '😖', '😣', '😞', '😓', '😩', '😫', '💩', '🙈', '🙉', '🙊', '👎', '🚑', '🚒', '🚓', '🚔', '🚨', '🛑',
-             '💧', '🎃', '📉', '⛔', '🚫', '❌', '🆘', '🔴']
 
 main_keyboard = telebot.types.ReplyKeyboardMarkup()
 main_keyboard.row('/TEST', '/CARDS')
@@ -64,11 +30,11 @@ startCard_keyboard.row('НАЧАТЬ 📚')
 testKeyboard = telebot.types.ReplyKeyboardMarkup()
 testKeyboard.row("ТЕСТ 📝")
 
-db = sqlite3.connect("superlangbot.sqlite")
-cursor = db.cursor()
-cursor.execute("SELECT frase FROM motivation ORDER BY random()")
-motivation = cursor.fetchall()
-db.close()
+
+def ask_word(mcid, usr_data, usr_id):
+    bot.send_message(mcid, f'❓  Переведи:  *{usr_data(usr_id)[0]}*',
+                     reply_markup=usr_data(usr_id)[4],
+                     parse_mode="markdown")
 
 
 @bot.message_handler(commands=['sudo_reboot'])
@@ -86,15 +52,13 @@ def reboot(message):
 
 @bot.message_handler(commands=['START', 'start'])
 def start(message):
-    print('st')
     dbworker.set_current_state(message.chat.id, config.States.S_START.value)
-    print('set')
     bot.send_message(message.chat.id, f'<b>Привет  </b> {message.from_user.first_name}\n\n'
                                       f'Для просмотра отчета о процессе обучения введи - /progress\n\n'
                                       f'Для возврата в меню из любого режима введи - /start\n\n\n'
                                       f'<b>Выбери режим работы:</b>\n\n'
-                                      '😎  тест без подготовки  -  /TEST\n\n'
-                                      '🤓  работа с карточками  -  /CARDS', parse_mode='html',
+                                      f'😎  тест без подготовки  -  /TEST\n\n'
+                                      f'🤓  работа с карточками  -  /CARDS', parse_mode='html',
                      reply_markup=main_keyboard)
     print(message.from_user.first_name, message.chat.id,
           datetime.utcfromtimestamp(message.date).strftime('%Y-%m-%d %H:%M:%S'))
@@ -102,30 +66,31 @@ def start(message):
                                      datetime.utcfromtimestamp(message.date).strftime('%Y-%m-%d %H:%M:%S'))
 
     dbworker.test_reminder_msg(message.from_user.id)
-    return
 
 
 @bot.message_handler(commands=['progress'])
 def show_progress_command(message):
-    bot.send_message(message.chat.id, str(dbworker.progress_check(message.chat.id)[1]) + ' - слов выучено\n ' +
-                     str(int((dbworker.progress_check(message.chat.id)[1]) / 42.45)) + '%  ' +
-                     str(' ⭐️' * (int(int((int(dbworker.progress_check(message.chat.id)[1])) / 42.45) / 10))) + '\n' +
-                     str(dbworker.progress_check(message.chat.id)[0]) + ' - слов в процессе изучения\n' +
-                     str(int((dbworker.progress_check(message.chat.id)[0]) / 42.45)) + '%  ' +
-                     str(' 🔎️' * (int(int((int(dbworker.progress_check(message.chat.id)[0])) / 42.45) / 10))) + '\n' +
-                     str(4245 - int(dbworker.progress_check(message.chat.id)[2])) + ' - слов осталость в базе\n' +
-                     str(int((4245 - int(dbworker.progress_check(message.chat.id)[2])) / 42.45)) + '%  ' +
-                     str(' 📚' * (int(int((4245 - int(dbworker.progress_check(message.chat.id)[2])) / 42.45) / 10))))
-
-    return
-
-
-###############################################################################################################
+    progress_chk = dbworker.progress_check(message.chat.id)
+    bot.send_message(message.chat.id, f'{progress_chk[1]}  - слов выучено\n'
+                                      f'{int((progress_chk[1]) / 42.45)} %  '
+                                      f'{"⭐" * (int(int((int(progress_chk[1])) / 42.45) / 10))} \n\n'
+                                      f'{(progress_chk[0])}  - слов в процессе изучения\n'
+                                      f'{int((progress_chk[0]) / 42.45)} %  '
+                                      f'{"🔎" * (int(int((int(progress_chk[0])) / 42.45) / 10))}  \n\n'
+                                      f'{4245 - int(progress_chk[2])}  - слов осталость в базе \n'
+                                      f'{int((4245 - int(progress_chk[2])) / 42.45)} %  '
+                                      f'{"📚" * (int(int((4245 - int(progress_chk[2])) / 42.45) / 10))}')
 
 
 @bot.message_handler(commands=['TEST'])
 def test_mode(message):
-    bot.send_message(message.chat.id, '*Режим*:  _тест без подготовки_', parse_mode='Markdown',
+    mcid = message.chat.id
+    usr_data = dbworker.user_current_data_from_db
+    usr_id = message.from_user.id
+    usr_progress = dbworker.check_word_id_in_progress
+    usr_prog_insert = dbworker.insert_user_progress_into_db
+    bot.send_message(message.chat.id, '*Режим*:  _тест без подготовки_',
+                     parse_mode='Markdown',
                      reply_markup=startTest_keyboard)
     dbworker.set_current_state(message.chat.id, config.States.S_TEST.value)
 
@@ -134,131 +99,73 @@ def test_mode(message):
     def nested_test_mode(message):
 
         if message.text == 'СТАРТ 🏁':
+
             dbworker.reset_msg_counter(message.from_user.id)
             dbworker.select_and_update_user_current_word(message.from_user.id)
 
-            bot.send_message(message.chat.id,
-                             '❓  Переведи:  ' + '*' +
-                             dbworker.user_current_data_from_db(message.from_user.id)[0] + '*',
-                             reply_markup=dbworker.user_current_data_from_db(message.from_user.id)[4],
-                             parse_mode="markdown")
-            return
+            ask_word(mcid, usr_data, usr_id)
 
-        elif message.text.lower() == dbworker.user_current_data_from_db(message.from_user.id)[1]:
-            # print('TEST: correct answer')
 
-            # dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-            #                                    dbworker.user_current_data_from_db(message.from_user.id)[3])
-            if dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                  dbworker.user_current_data_from_db(message.from_user.id)[3]) == False:
-                # print('TEST: false  returned to test mode. set interval - 2')
-                dbworker.insert_user_progress_into_db(message.chat.id,
-                                                      dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      172800,
-                                                      int(time.time()))
-                bot.send_message(message.chat.id, random.choice(emoji_gut) + ' ' + random.choice(words_gut))
 
-            elif dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                    dbworker.user_current_data_from_db(message.from_user.id)[
-                                                        3]) == 86400:
-                # print('TEST: 1 returned to test mode. set interval - 2')
-                dbworker.insert_user_progress_into_db(message.chat.id,
-                                                      dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      172800,
-                                                      int(time.time()))
-                bot.send_message(message.chat.id, random.choice(emoji_gut) + ' ' + random.choice(words_gut))
+        elif message.text.lower() == usr_data(usr_id)[1]:
 
-            elif dbworker.check_word_id_in_progress(
-                    dbworker.user_current_data_from_db(message.from_user.id)[2],
-                    dbworker.user_current_data_from_db(message.from_user.id)[3]) == 172800:
-                # print('TEST: 2 returned to test mode. set interval - 4')
-                dbworker.insert_user_progress_into_db(message.chat.id,
-                                                      dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      345600,
-                                                      int(time.time()))
-                bot.send_message(message.chat.id, random.choice(emoji_gut) + ' ' + random.choice(words_gut))
+            if usr_progress(usr_data(usr_id)[2], usr_data(usr_id)[3]) is False:
 
-            elif dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                    dbworker.user_current_data_from_db(message.from_user.id)[
-                                                        3]) == 345600:
-                # print('TEST: 4 returned to test mode. set interval - 8')
-                dbworker.insert_user_progress_into_db(message.chat.id,
-                                                      dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      691200,
-                                                      int(time.time()))
-                bot.send_message(message.chat.id, random.choice(emoji_gut) + ' ' + random.choice(words_gut))
+                usr_prog_insert(message.chat.id, usr_data(usr_id)[2], 172800, int(time.time()))
+                bot.send_message(message.chat.id,
+                                 random.choice(dbworker.emoji_win()[0]) + ' ' + random.choice(dbworker.words_win()[0]))
 
-            elif dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                    dbworker.user_current_data_from_db(message.from_user.id)[
-                                                        3]) == 691200:
-                # print('TEST: 8 returned to test mode. set interval - 9')
-                dbworker.insert_user_progress_into_db(message.chat.id,
-                                                      dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      777600,
-                                                      int(time.time()))
+            elif usr_progress(usr_data(usr_id)[2], usr_data(usr_id)[3]) == 86400:
+
+                usr_prog_insert(message.chat.id, usr_data(usr_id)[2], 172800, int(time.time()))
+                bot.send_message(message.chat.id,
+                                 random.choice(dbworker.emoji_win()[0]) + ' ' + random.choice(dbworker.words_win()[0]))
+
+            elif usr_progress(usr_data(usr_id)[2], usr_data(usr_id)[3]) == 172800:
+
+                usr_prog_insert(message.chat.id, usr_data(usr_id)[2], 345600, int(time.time()))
+                bot.send_message(message.chat.id,
+                                 random.choice(dbworker.emoji_win()[0]) + ' ' + random.choice(dbworker.words_win()[0]))
+
+            elif usr_progress(usr_data(usr_id)[2], usr_data(usr_id)[3]) == 345600:
+
+                usr_prog_insert(message.chat.id, usr_data(usr_id)[2], 691200, int(time.time()))
+                bot.send_message(message.chat.id,
+                                 random.choice(dbworker.emoji_win()[0]) + ' ' + random.choice(dbworker.words_win()[0]))
+
+            elif usr_progress(usr_data(usr_id)[2], usr_data(usr_id)[3]) == 691200:
+
+                usr_prog_insert(message.chat.id, usr_data(usr_id)[2], 777600, int(time.time()))
                 bot.send_message(message.chat.id, '🎈🎉🎊🎉  Поздравляю! Слово выучено! 😃  🎉🎊🎉🎈')
 
-            elif dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                    dbworker.user_current_data_from_db(message.from_user.id)[
-                                                        3]) == 777600:
-                # print('9 returned to test mode. set interval - 9')
-                dbworker.insert_user_progress_into_db(message.chat.id,
-                                                      dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      777600,
-                                                      int(time.time()))
-                bot.send_message(message.chat.id, 'Слово уже выучено...')
+            elif usr_progress(usr_data(usr_id)[2], usr_data(usr_id)[3]) == 777600:
 
-            # bot.send_message(message.chat.id, random.choice(emoji_gut) + ' ' + random.choice(words_gut))
+                usr_prog_insert(message.chat.id, usr_data(usr_id)[2], 777600, int(time.time()))
+                bot.send_message(message.chat.id, 'Слово уже выучено...')
 
             if int(dbworker.get_msg_counter(message.from_user.id)[0]) >= 20:
                 time.sleep(1)
-                bot.send_message(message.chat.id, links[random.randint(0, 2)])
+                bot.send_message(message.chat.id, dbworker.links()[random.randint(0, 2)])
                 time.sleep(1.5)
                 dbworker.reset_msg_counter(message.from_user.id)
-
 
             else:
                 dbworker.increase_msg_counter(message.from_user.id)
 
             dbworker.select_and_update_user_current_word(message.from_user.id)
-            bot.send_message(message.chat.id,
-                             '❓  Переведи:  ' + '*' +
-                             dbworker.user_current_data_from_db(message.from_user.id)[0] + '*',
-                             reply_markup=dbworker.user_current_data_from_db(message.from_user.id)[4],
-                             parse_mode="markdown")
-            return
+            ask_word(mcid, usr_data, usr_id)
 
-        elif message.text.lower() != dbworker.user_current_data_from_db(message.from_user.id)[1]:
-            # print('incorrect')
+        elif message.text.lower() != usr_data(usr_id)[1]:
 
-            # dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-            #                                    dbworker.user_current_data_from_db(message.from_user.id)[3])
-            # if dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-            #                                       dbworker.user_current_data_from_db(message.from_user.id)[3]) is True:
-            dbworker.insert_user_progress_into_db(message.chat.id,
-                                                  dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                  86400,
-                                                  int(time.time()))
-
-            # elif dbworker.check_word_id_in_progress(
-            #         dbworker.user_current_data_from_db(message.from_user.id)[2],
-            #         dbworker.user_current_data_from_db(message.from_user.id)[3]) is False:
-            #     dbworker.insert_user_progress_into_db(message.chat.id,
-            #                                           dbworker.user_current_data_from_db(message.from_user.id)[2],
-            #                                           1,
-            #                                           int(time.time()))
+            usr_prog_insert(message.chat.id, usr_data(usr_id)[2], 86400, int(time.time()))
 
             bot.send_message(message.chat.id,
-                             '"' + (random.choice(motivation))[0] + '"\n\n' + random.choice(emoji_bad) +
-                             ' Запомни перевод    \n' + '*' +
-                             dbworker.user_current_data_from_db(message.from_user.id)[
-                                 0] + '*' + ':  ' + '_' +
-                             dbworker.user_current_data_from_db(message.from_user.id)[1] + '_',
-                             parse_mode="markdown")
+                             f'{random.choice(dbworker.emoji_lost()[0])}\n\n{random.choice(dbworker.motivation()[0])}\n\nЗапомни перевод\n'
+                             f'*{usr_data(usr_id)[0]}* : _{usr_data(usr_id)[1]}_', parse_mode="markdown")
 
             if int(dbworker.get_msg_counter(message.from_user.id)[0]) >= 15:
                 time.sleep(1)
-                bot.send_message(message.chat.id, links[random.randint(0, 2)])
+                bot.send_message(message.chat.id, dbworker.links()[random.randint(0, 2)])
                 time.sleep(1.5)
                 dbworker.reset_msg_counter(message.from_user.id)
 
@@ -266,60 +173,51 @@ def test_mode(message):
                 dbworker.increase_msg_counter(message.from_user.id)
 
             dbworker.select_and_update_user_current_word(message.from_user.id)
-            bot.send_message(message.chat.id,
-                             '❓  Переведи:  ' + '*' +
-                             dbworker.user_current_data_from_db(message.from_user.id)[0] + '*',
-                             reply_markup=dbworker.user_current_data_from_db(message.from_user.id)[4],
-                             parse_mode="markdown")
-            return
+            ask_word(mcid, usr_data, usr_id)
 
 
 @bot.message_handler(commands=['CARDS'])
 def carding(message):
+    mcid = message.chat.id
+    usr_data = dbworker.user_current_data_from_db
+    usr_id = message.from_user.id
+    usr_progress = dbworker.check_word_id_in_progress
+    usr_prog_insert = dbworker.insert_user_progress_into_db
     bot.send_message(message.chat.id, '*Режим*:  _работа с карточками_', parse_mode='Markdown',
                      reply_markup=startCard_keyboard)
     dbworker.set_current_state(message.chat.id, config.States.S_CARDS.value)
 
-    @bot.message_handler(content_types=['text'], func=lambda message: dbworker.get_current_state(
-        message.chat.id) == config.States.S_CARDS.value)
+    @bot.message_handler(content_types=['text'], func=lambda message: dbworker.get_current_state(message.chat.id)
+                                                                      == config.States.S_CARDS.value)
     def nest_carding(message):
+        def lesson_over():
+
+            markup = types.ReplyKeyboardRemove(selective=True)
+            bot.send_message(message.chat.id, 'Урок пройден 🎓\n', reply_markup=markup)
+            time.sleep(1)
+            bot.send_message(message.chat.id, dbworker.links()[random.randint(0, 2)])
+            bot.send_message(message.chat.id, 'Вернуться в меню /start')
+            dbworker.set_current_state(message.chat.id, config.States.S_START.value)
 
         if message.text == 'НАЧАТЬ 📚':
+
             dbworker.select_and_update_user_current_word_list(message.from_user.id)
             dbworker.cycl(message.from_user.id)
+            cycl = dbworker.cycl(message.from_user.id)
 
             card = bot.send_message(message.chat.id, '📖 *Слова для запоминания* 📖  \n\n'
-                                    + '*' + dbworker.cycl(message.from_user.id)[0][1] + '* :    ' + '_' +
-                                    dbworker.cycl(message.from_user.id)[0][
-                                        2] + '_' + '\n'
-                                    + '*' + dbworker.cycl(message.from_user.id)[1][1] + '* :    ' + '_' +
-                                    dbworker.cycl(message.from_user.id)[1][
-                                        2] + '_' + '\n'
-                                    + '*' + dbworker.cycl(message.from_user.id)[2][1] + '* :    ' + '_' +
-                                    dbworker.cycl(message.from_user.id)[2][
-                                        2] + '_' + '\n'
-                                    + '*' + dbworker.cycl(message.from_user.id)[3][1] + '* :    ' + '_' +
-                                    dbworker.cycl(message.from_user.id)[3][
-                                        2] + '_' + '\n'
-                                    + '*' + dbworker.cycl(message.from_user.id)[4][1] + '* :    ' + '_' +
-                                    dbworker.cycl(message.from_user.id)[4][
-                                        2] + '_' + '\n'
-                                    + '*' + dbworker.cycl(message.from_user.id)[5][1] + '* :    ' + '_' +
-                                    dbworker.cycl(message.from_user.id)[5][
-                                        2] + '_' + '\n'
-                                    + '*' + dbworker.cycl(message.from_user.id)[6][1] + '* :    ' + '_' +
-                                    dbworker.cycl(message.from_user.id)[6][
-                                        2] + '_' + '\n'
-                                    + '*' + dbworker.cycl(message.from_user.id)[7][1] + '* :    ' + '_' +
-                                    dbworker.cycl(message.from_user.id)[7][
-                                        2] + '_' + '\n'
-                                    + '*' + dbworker.cycl(message.from_user.id)[8][1] + '* :    ' + '_' +
-                                    dbworker.cycl(message.from_user.id)[8][
-                                        2] + '_' + '\n'
-                                    + '*' + dbworker.cycl(message.from_user.id)[9][1] + '* :    ' + '_' +
-                                    dbworker.cycl(message.from_user.id)[9][
-                                        2] + '_' + '\n'
-                                    , parse_mode='Markdown', reply_markup=testKeyboard)
+                                                     f'*{cycl[0][1]}*:    _{cycl[0][2]} _ \n'
+                                                     f'*{cycl[1][1]}*:    _{cycl[1][2]} _ \n'
+                                                     f'*{cycl[2][1]}*:    _{cycl[2][2]} _ \n'
+                                                     f'*{cycl[3][1]}*:    _{cycl[3][2]} _ \n'
+                                                     f'*{cycl[4][1]}*:    _{cycl[4][2]} _ \n'
+                                                     f'*{cycl[5][1]}*:    _{cycl[5][2]} _ \n'
+                                                     f'*{cycl[6][1]}*:    _{cycl[6][2]} _ \n'
+                                                     f'*{cycl[7][1]}*:    _{cycl[7][2]} _ \n'
+                                                     f'*{cycl[8][1]}*:    _{cycl[8][2]} _ \n'
+                                                     f'*{cycl[9][1]}*:    _{cycl[9][2]} _ \n',
+                                    reply_markup=testKeyboard,
+                                    parse_mode='markdown')
 
             dbworker.set_msg_id(message.chat.id, card.message_id)
 
@@ -328,87 +226,48 @@ def carding(message):
             bot.delete_message(message.from_user.id, dbworker.get_msg_id(message.chat.id))
 
             dbworker.pop_user_current_word_list(message.from_user.id)
+            ask_word(mcid, usr_data, usr_id)
+
+        elif message.text.lower() == usr_data(usr_id)[1]:
+
+            usr_progress(usr_data(usr_id)[2], usr_data(usr_id)[3])
+            if usr_progress(usr_data(usr_id)[2], usr_data(usr_id)[3]) is True:
+                usr_prog_insert(message.chat.id, usr_data(usr_id)[2], 345600, int(time.time()))
+
+            elif usr_progress(usr_data(usr_id)[2], usr_data(usr_id)[3]) is False:
+                usr_prog_insert(message.chat.id, usr_data(usr_id)[2], 172800, int(time.time()))
+
             bot.send_message(message.chat.id,
-                             '❓  Переведи:  ' + '*' +
-                             dbworker.user_current_data_from_db(message.from_user.id)[0] + '*',
-                             reply_markup=dbworker.user_current_data_from_db(message.from_user.id)[4],
-                             parse_mode="markdown")
-
-            return
-
-        elif message.text.lower() == dbworker.user_current_data_from_db(message.from_user.id)[1]:
-
-            dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                               dbworker.user_current_data_from_db(message.from_user.id)[3])
-            if dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                  dbworker.user_current_data_from_db(message.from_user.id)[3]) is True:
-                dbworker.insert_user_progress_into_db(message.chat.id,
-                                                      dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      345600,
-                                                      int(time.time()))
-
-            elif dbworker.check_word_id_in_progress(
-                    dbworker.user_current_data_from_db(message.from_user.id)[2],
-                    dbworker.user_current_data_from_db(message.from_user.id)[3]) is False:
-                dbworker.insert_user_progress_into_db(message.chat.id,
-                                                      dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      172800,
-                                                      int(time.time()))
-
-            bot.send_message(message.chat.id, random.choice(emoji_gut) + ' ' + random.choice(words_gut))
+                             random.choice(dbworker.emoji_win()[0]) + ' ' + random.choice(dbworker.words_win()[0]))
 
             if dbworker.pop_user_current_word_list(message.from_user.id) is not False:
-                bot.send_message(message.chat.id,
-                                 '❓  Переведи:  ' + '*' +
-                                 dbworker.user_current_data_from_db(message.from_user.id)[0] + '*',
-                                 reply_markup=dbworker.user_current_data_from_db(message.from_user.id)[4],
-                                 parse_mode="markdown", )
+                ask_word(mcid, usr_data, usr_id)
             else:
-                markup = types.ReplyKeyboardRemove(selective=True)
-                bot.send_message(message.chat.id, 'Урок пройден 🎓\n', reply_markup=markup)
-                time.sleep(1)
-                bot.send_message(message.chat.id, links[random.randint(0, 2)])
-                bot.send_message(message.chat.id, 'Вернуться в меню /start')
-                dbworker.set_current_state(message.chat.id, config.States.S_START.value)
+                lesson_over()
 
-        elif message.text.lower() != dbworker.user_current_data_from_db(message.from_user.id)[1]:
+        elif message.text.lower() != usr_data(usr_id)[1]:
 
-            dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                               dbworker.user_current_data_from_db(message.from_user.id)[3])
-            if dbworker.check_word_id_in_progress(dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                  dbworker.user_current_data_from_db(message.from_user.id)[3]) is True:
-                dbworker.insert_user_progress_into_db(message.chat.id,
-                                                      dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      86400,
-                                                      int(time.time()))
+            usr_progress(usr_data(usr_id)[2], usr_data(usr_id)[3])
+            if usr_progress(usr_data(usr_id)[2], usr_data(usr_id)[3]) is True:
+                usr_prog_insert(message.chat.id, usr_data(usr_id)[2], 86400, int(time.time()))
 
-            elif dbworker.check_word_id_in_progress(
-                    dbworker.user_current_data_from_db(message.from_user.id)[2],
-                    dbworker.user_current_data_from_db(message.from_user.id)[3]) is False:
-                dbworker.insert_user_progress_into_db(message.chat.id,
-                                                      dbworker.user_current_data_from_db(message.from_user.id)[2],
-                                                      86400,
-                                                      int(time.time()))
+            elif usr_progress(
+                    usr_data(message.from_user.id)[2],
+                    usr_data(message.from_user.id)[3]) is False:
+                usr_prog_insert(message.chat.id,
+                                usr_data(message.from_user.id)[2],
+                                86400,
+                                int(time.time()))
 
             bot.send_message(message.chat.id,
-                             '"' + (random.choice(motivation))[0] + '"\n\n' + random.choice(emoji_bad)
-                             ,
+                             f'{random.choice(dbworker.emoji_lost()[0])}\n\n{random.choice(dbworker.motivation()[0])}',
                              parse_mode="markdown")
 
             if dbworker.pop_user_current_word_list(message.from_user.id) is not False:
-                bot.send_message(message.chat.id,
-                                 '❓  Переведи:  ' + '*' +
-                                 dbworker.user_current_data_from_db(message.from_user.id)[0] + '*',
-                                 reply_markup=dbworker.user_current_data_from_db(message.from_user.id)[4],
-                                 parse_mode="markdown")
+                ask_word(mcid, usr_data, usr_id)
 
             else:
-                markup = types.ReplyKeyboardRemove(selective=True)
-                bot.send_message(message.chat.id, 'Урок пройден 🎓\n', reply_markup=markup)
-                time.sleep(1)
-                bot.send_message(message.chat.id, links[random.randint(0, 2)])
-                bot.send_message(message.chat.id, 'Вернуться в меню /start')
-                dbworker.set_current_state(message.chat.id, config.States.S_START.value)
+                lesson_over()
 
 
 @bot.message_handler(content_types=['text'],
@@ -419,12 +278,6 @@ def reboot_msg(message):
                      disable_notification=True)
     time.sleep(2)
     return start(message)
-
-
-"""How can I handle reocurring ConnectionResetErrors?
-Bot instances that were idle for a long time might be rejected by the server when sending a message due to a timeout 
-of the last used session. Add apihelper.SESSION_TIME_TO_LIVE = 5 * 60 to your initialisation to force recreation 
-after 5 minutes without any activity. """
 
 
 def schedule_checker():
@@ -454,7 +307,7 @@ def msg_itself(user_id):
 apihelper.SESSION_TIME_TO_LIVE = 5 * 60
 
 if __name__ == '__main__':
-    print("bot running...")
+    print("Langosaurus running...")
     Thread(target=schedule_checker).start()
     while True:
         try:
