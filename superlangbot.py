@@ -61,7 +61,7 @@ def start(message):
                                       f'🤓  работа с карточками  -  /CARDS', parse_mode='html',
                      reply_markup=main_keyboard)
     print(message.from_user.first_name, message.chat.id,
-          datetime.utcfromtimestamp(message.date).strftime('%Y-%m-%d %H:%M:%S'))
+          datetime.utcfromtimestamp(message.date).strftime('%Y-%m-%d %H:%M:%S'), dbworker.get_current_state(message.from_user.id))
     dbworker.insert_new_user_into_db(message.chat.id, message.from_user.first_name,
                                      datetime.utcfromtimestamp(message.date).strftime('%Y-%m-%d %H:%M:%S'))
 
@@ -84,19 +84,21 @@ def show_progress_command(message):
 
 @bot.message_handler(commands=['TEST'])
 def test_mode(message):
-    mcid = message.chat.id
-    usr_data = dbworker.user_current_data_from_db
-    usr_id = message.from_user.id
-    usr_progress = dbworker.check_word_id_in_progress
-    usr_prog_insert = dbworker.insert_user_progress_into_db
+
     bot.send_message(message.chat.id, '*Режим*:  _тест без подготовки_',
                      parse_mode='Markdown',
                      reply_markup=startTest_keyboard)
     dbworker.set_current_state(message.chat.id, config.States.S_TEST.value)
 
+
     @bot.message_handler(content_types=['text'],
                          func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_TEST.value)
     def nested_test_mode(message):
+        mcid = message.chat.id
+        usr_data = dbworker.user_current_data_from_db
+        usr_id = message.from_user.id
+        usr_progress = dbworker.check_word_id_in_progress
+        usr_prog_insert = dbworker.insert_user_progress_into_db
 
         if message.text == 'СТАРТ 🏁':
 
@@ -178,18 +180,19 @@ def test_mode(message):
 
 @bot.message_handler(commands=['CARDS'])
 def carding(message):
-    mcid = message.chat.id
-    usr_data = dbworker.user_current_data_from_db
-    usr_id = message.from_user.id
-    usr_progress = dbworker.check_word_id_in_progress
-    usr_prog_insert = dbworker.insert_user_progress_into_db
     bot.send_message(message.chat.id, '*Режим*:  _работа с карточками_', parse_mode='Markdown',
                      reply_markup=startCard_keyboard)
     dbworker.set_current_state(message.chat.id, config.States.S_CARDS.value)
 
+
     @bot.message_handler(content_types=['text'], func=lambda message: dbworker.get_current_state(message.chat.id)
                                                                       == config.States.S_CARDS.value)
     def nest_carding(message):
+        mcid = message.chat.id
+        usr_data = dbworker.user_current_data_from_db
+        usr_id = message.from_user.id
+        usr_progress = dbworker.check_word_id_in_progress
+        usr_prog_insert = dbworker.insert_user_progress_into_db
         def lesson_over():
 
             markup = types.ReplyKeyboardRemove(selective=True)
