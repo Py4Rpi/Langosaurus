@@ -1,4 +1,4 @@
-# LANGOSAURUS (Under construction)
+# LANGOSAURUS
 
 Telegram bot for improving english vocabulary (For russian speakers)
 
