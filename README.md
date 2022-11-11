@@ -50,6 +50,4 @@ There are two modes so far:
 
 ## Help
 
-Keep in mind that it is just a simple pet project and there are no any warranty that it will work on your setup.
-
 If any troubles you can use Issue Tracker to notify me.
