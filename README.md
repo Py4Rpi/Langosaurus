@@ -12,6 +12,8 @@ This is my pet project for SQL and Telegram Bots practice. It is a Telegram bot 
 So far it is designed only for russian speakers but there are plans to make it multilangual. This project still has a lot of work to do so
 there could be some bugs or code snipets to improve.
 
+You can try to this bot as a user by link:  https://t.me/LangoSaurusBot
+
 ## Getting Started
 
 ### Dependencies
