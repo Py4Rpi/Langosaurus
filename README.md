@@ -6,7 +6,6 @@ Telegram bot for improving english vocabulary (For russian speakers)
 
 ## Description
 
-Hello!
 
 This is my pet project for SQL and Telegram Bots practice. It is a Telegram bot which helps you to learn new words from English vocabulary.
 So far it is designed only for russian speakers but there are plans to make it multilangual. 
